@@ -1,0 +1,17 @@
+<%- include('layout_start') %>
+
+<% if (type === "teacher") { %>
+    <h1 class="display-1">The current account type: Teacher</h1>
+<% } else { %>
+    <h1 class="display-1">The current account type: Student</h1>
+<% } %>
+<p class="lead">Welcome to the Student Academic Record System!</p>
+<p class="lead">Click the left sidebar to start</p>
+
+<%- include('layout_end') %>
+
+<% if (typeof popupMessage !== 'undefined' && popupMessage === 'CHANGE_PASSWORD_SUCCESS') { %>
+<script>
+    window.alert("Change password success");
+</script>
+<% } %>
