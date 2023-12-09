@@ -4,7 +4,7 @@ var path = require('path');
 var cookieParser = require('cookie-parser');
 var logger = require('morgan');
 var $ = require('jquery')
-var session = require('express-session');
+var session = require('cookie-session');
 
 var app = express();
 
