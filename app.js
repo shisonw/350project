@@ -5,6 +5,7 @@ var cookieParser = require('cookie-parser');
 var logger = require('morgan');
 var $ = require('jquery')
 var session = require('express-session');
+const MongoStore = require('connect-mongo')(session);
 
 var app = express();
 
@@ -13,6 +14,7 @@ app.use(session({
   name: 'user', // optional
   saveUninitialized: false,
   resave: true,
+  store:new MongoStore(options)
 }));
 
 var indexRouter = require('./routes/index');
