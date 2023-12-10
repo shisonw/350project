@@ -4,7 +4,7 @@ var path = require('path');
 var cookieParser = require('cookie-parser');
 var logger = require('morgan');
 var $ = require('jquery')
-var session = require('cookie-session');
+var session = require('express-session');
 
 var app = express();
 
@@ -17,7 +17,7 @@ app.use(session({
 
 var indexRouter = require('./routes/index');
 var usersRouter = require('./routes/users');
-
+app.use(express.static(__dirname + '/public'));
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'ejs');

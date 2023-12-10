@@ -1,7 +1,6 @@
 <%- include('layout_start') %>
-
+<div class="bg">
 <div class="container">
-
     <div class="input-group mb-3">
         <h1 class="display-1"><%= targetClass.cname %></h1>
     </div>
@@ -20,15 +19,9 @@
             <th class="col-md-1"></th>
             </tr>
         </thead>
-
-        <% if (type === 'teacher') { %> 
-            <div class="text-left">
-                <button id="add_btn" type="button" class="btn btn-primary">Add</button>
-            </div>
-        <% } %>
-
         <tbody id="table_body">
             <% for (var s of students) { %>
+                <% if ((locals.sid && sid == s.sid) || (type == "teacher")) { %>
                 <tr class='clickable-row' data-href='/student/<%= targetClass._id %>/<%= s._id %>'>
                     <td><%= s.sname %></td>
                     <td><%= s.sid %></td>
@@ -37,30 +30,24 @@
                     <td><%= mDate.getDate() %>/<%= mMonth %>/<%= mDate.getFullYear() %></td>
                     <td><%= s.hkid %></td>
                     <td><a class="btn btn-success" href='/student/<%= targetClass._id %>/<%= s._id %>'>View</a></td>
-                    <!--Delete Student-->
-                    <% if(type === 'teacher'){%>
-                        <td><a class="btn btn-success" href='/removeS/<%= targetClass._id %>/<%= s._id %>'>Delete</a></td>
-                    <% }%>
                 </tr>
+                <% } %>
             <% } %>
         </tbody>
     </table>
     </form>
-   
+    <% if (type === 'teacher') { %> 
+        <div class="text-center">
+            <button id="add_btn" type="button" class="btn btn-primary">Add</button>
+        </div>
+    <% } %>
 
 </div>
+</div>
 
-<script>
-    $(document).keypress(function(event){
-           if (event.which == '13') {
-              event.preventDefault();
-            }
-        });
-</script>
 
 <script>
     jQuery(document).ready(function($) {
-
         $(".clickable-row").click(function() {
             window.location = $(this).data("href");
         });
@@ -71,7 +58,7 @@
 
         $("#add_btn").click(function() {
             if (!$('#edit_row').length) {
-                $("#table_body").append('<tr id="edit_row"><td><input class="form-control" type="text" name="sname" placeholder="Name" required></td><td><input class="form-control" type="text" name="sid" placeholder="Student ID" required></td><td><input class="form-control" type="date" name="dob" placeholder="Date of Birth" required></td><td><input class="form-control" type="text" name="hkid" placeholder="HKID" required></td><td><button id="save_btn" type="submit" class="btn btn-primary" required>Save</button></td> </tr>')
+                $("#table_body").append('<tr id="edit_row"><td><input class="form-control" type="text" name="sname" placeholder="Name" maxlength="50" required></td><td><input class="form-control" type="text" name="sid" placeholder="Student ID" required></td><td><input class="form-control" type="date" name="dob" placeholder="Date of Birth" required></td><td><input class="form-control" type="text" name="hkid" placeholder="HKID"></td><td><button id="save_btn" type="submit" class="btn btn-primary" required>Save</button></td> </tr>')
             }
         });
 
@@ -89,4 +76,17 @@
 <%- include('layout_end') %>
 
 
+<style>
+    .bg {
+        width: 100%;
+        height: 100%;
+        background-position: center center;
+        background-repeat: no-repeat;
+        background-attachment: fixed;
+        background-size: cover;
+        background-color: aqua;
+        overflow: hidden;
+        background-image: url('../images/bg2.jpg')
+    }
+</style>
 

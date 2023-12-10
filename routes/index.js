@@ -1,8 +1,7 @@
 var express = require('express');
-var session = require('express-session');
+var session = require('express-session')
 var router = express.Router();
 const { connectToDB, ObjectId } = require('../utils/db');
-const { Error } = require('mongoose');
 
 /* GET index page. */
 router.get('/', function (req, res, next) {
@@ -11,8 +10,8 @@ router.get('/', function (req, res, next) {
 
 /* GET login page. */
 router.get('/login', async function (req, res, next) {
-  console.log(req.session);
-  console.log(req.sessionID);
+  console.log(req.session)
+  console.log(req.sessionID)
   res.render('login');
 });
 
@@ -26,6 +25,15 @@ router.post('/login', async function (req, res, next) {
     } else {
       req.session.type = result[0].type;
       req.session.username = result[0].username;
+      req.session.id = result[0]._id;
+      if (result[0].type == "teacher" || result[0].type == "student") {
+        req.session.classname = result[0].classname;
+      } else {
+        req.session.classname = "";
+      }
+      if (result[0].type == "student") {
+        req.session.sid = result[0].sid;
+      }
       res.redirect('/home');
     }
   } catch (err) {
@@ -126,7 +134,7 @@ router.get('/home', async function (req, res, next) {
   try {
     let classes = await db.collection("classes").find().toArray();
     console.log(classes[1].students);
-    res.render('home', { classes: classes, type: req.session.type });
+    res.render('home', { classes: classes, type: req.session.type, username: req.session.username, classname: req.session.classname, userId: req.session.id, sid: req.session.sid });
   } catch (err) {
     res.status(400).json({ message: err.message });
   } finally {
@@ -135,7 +143,7 @@ router.get('/home', async function (req, res, next) {
 });
 
 
-/* GET classes page. */ //class to anothr class
+/* GET classes page. */
 router.get('/class/:id', async function (req, res, next) {
   if (!req.session.username) {
     return res.render('login');
@@ -145,14 +153,14 @@ router.get('/class/:id', async function (req, res, next) {
     let classes = await db.collection("classes").find().toArray();
     let targetClass = await db.collection("classes").find({ _id: new ObjectId(req.params.id) }).toArray();
     console.log(targetClass);
-    //search 
+    let students = null;
     if (req.query.searchText) {
       students = await db.collection("students").find({ sid: { $in: targetClass[0].students }, sname: { $regex: req.query.searchText } }).toArray();
     } else {
       students = await db.collection("students").find({ sid: { $in: targetClass[0].students } }).toArray();
     }
     console.log(students)
-    res.render('class', { classes: classes, students: students, targetClass: targetClass[0], type: req.session.type });
+    res.render('class', { classes: classes, students: students, targetClass: targetClass[0], type: req.session.type, username: req.session.username, classname: req.session.classname, userId: req.session.id, sid: req.session.sid });
   } catch (err) {
     res.status(400).json({ message: err.message });
   } finally {
@@ -161,7 +169,7 @@ router.get('/class/:id', async function (req, res, next) {
 });
 
 
-/* POST classes page. */ // class to another class
+/* POST classes page. */
 router.post('/class/:id', async function (req, res, next) {
   if (!req.session.username) {
     return res.render('login');
@@ -179,7 +187,7 @@ router.post('/class/:id', async function (req, res, next) {
     console.log(targetClass[0].students)
     let students = await db.collection("students").find({ sid: { $in: targetClass[0].students } }).toArray();
     console.log(students)
-    res.render('class', { classes: classes, students: students, targetClass: targetClass[0], type: req.session.type });
+    res.render('class', { classes: classes, students: students, targetClass: targetClass[0], type: req.session.type, username: req.session.username, classname: req.session.classname, userId: req.session.id, sid: req.session.sid });
   } catch (err) {
     res.status(400).json({ message: err.message });
   } finally {
@@ -188,7 +196,7 @@ router.post('/class/:id', async function (req, res, next) {
 });
 
 
-/* GET classes page. */ //class to student 
+/* GET classes page. */
 router.get('/student/:id/:sid', async function (req, res, next) {
   if (!req.session.username) {
     return res.render('login');
@@ -200,7 +208,7 @@ router.get('/student/:id/:sid', async function (req, res, next) {
     let students = await db.collection("students").find({ sid: { $in: targetClass[0].students } }).toArray();
     let student = await db.collection("students").find({ _id: new ObjectId(req.params.sid) }).limit(1).toArray();
     if (student) {
-      res.render('student', { classes: classes, students: students, targetStudent: student, classid: req.params.id, type: req.session.type });
+      res.render('student', { classes: classes, students: students, targetStudent: student, classid: req.params.id, type: req.session.type, username: req.session.username, classname: req.session.classname, userId: req.session.id, sid: req.session.sid });
     } else {
       res.status(404).json({ message: "Event not found" });
     }
@@ -219,13 +227,14 @@ router.post('/student/:id/:sid', async function (req, res, next) {
   }
   const db = await connectToDB();
   try {
-    result = await db.collection("students").updateOne({ _id: new ObjectId(req.params.sid) }, { $push: { tests: req.body } });
+
     let classes = await db.collection("classes").find().toArray();
     let targetClass = await db.collection("classes").find({ _id: new ObjectId(req.params.id) }).toArray();
     let students = await db.collection("students").find({ sid: { $in: targetClass[0].students } }).toArray();
+    result = await db.collection("students").updateOne({ _id: new ObjectId(req.params.sid) }, { $push: { tests: req.body } });
     let student = await db.collection("students").find({ _id: new ObjectId(req.params.sid) }).limit(1).toArray();
     if (student) {
-      res.render('student', { classes: classes, students: students, targetStudent: student, classid: req.params.id, type: req.session.type });
+      res.render('student', { classes: classes, students: students, targetStudent: student, classid: req.params.id, type: req.session.type, username: req.session.username, classname: req.session.classname, userId: req.session.id, sid: req.session.sid });
     } else {
       res.status(404).json({ message: "Event not found" });
     }
@@ -237,23 +246,42 @@ router.post('/student/:id/:sid', async function (req, res, next) {
   }
 });
 
-router.get('/removeS/:id/:sid',async function (req, res, next){
+router.get('/teacher', async function (req, res, next) {
   if (!req.session.username) {
     return res.render('login');
   }
   const db = await connectToDB();
-  try{
-    let studentid = await db.collection("students").find({_id: req.params.sid}, {"sid":1,_id:0}).toString();
-    chosen = await db.collection("classes").updateOne({ _id:new ObjectId(req.params.id)}, { $pull: { students: studentid} });
-    console.log('Removed');
-    res.render('deleted'); 
-  }catch(err) {
+  try {
+    let classes = await db.collection("classes").find().toArray();
+    let teachers = await db.collection("users").find({ type: "teacher" }).toArray();
+    console.log(teachers);
+    res.render('teacher', { teachers: teachers, classes: classes, type: req.session.type, username: req.session.username, classname: req.session.classname, userId: req.session.id, sid: req.session.sid });
+  } catch (err) {
     res.status(400).json({ message: err.message });
-    console.log(err);
   } finally {
     await db.client.close();
   }
 });
+
+router.post('/teacher', async function (req, res, next) {
+  if (!req.session.username) {
+    return res.render('login');
+  }
+  console.log(req.body);
+  const db = await connectToDB();
+  try {
+    let result = await db.collection("users").updateOne({ username: req.body.username }, { $set: { classname: req.body.class } });
+    let classes = await db.collection("classes").find().toArray();
+    let teachers = await db.collection("users").find({ type: "teacher" }).toArray();
+    console.log(teachers);
+    res.render('teacher', { teachers: teachers, classes: classes, type: req.session.type, username: req.session.username, classname: req.session.classname, userId: req.session.id, sid: req.session.sid });
+  } catch (err) {
+    res.status(400).json({ message: err.message });
+  } finally {
+    await db.client.close();
+  }
+});
+
 
 
 module.exports = router;
